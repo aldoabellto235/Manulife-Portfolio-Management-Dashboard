@@ -1,20 +1,28 @@
 import 'dotenv/config';
-import { z } from 'zod';
+import Joi from 'joi';
 
-const schema = z.object({
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  PORT: z.coerce.number().int().positive().default(3000),
-  DATABASE_URL: z.string().min(1),
-  JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
-  JWT_EXPIRES_IN: z.string().default('7d'),
-});
+const schema = Joi.object({
+  NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
+  PORT: Joi.number().integer().positive().default(3000),
+  DATABASE_URL: Joi.string().required(),
+  JWT_SECRET: Joi.string().min(32).required().messages({
+    'string.min': 'JWT_SECRET must be at least 32 characters',
+  }),
+  JWT_EXPIRES_IN: Joi.string().default('7d'),
+}).unknown(true);
 
-const parsed = schema.safeParse(process.env);
+const { error, value } = schema.validate(process.env, { abortEarly: false });
 
-if (!parsed.success) {
+if (error) {
   console.error('[Config] Missing or invalid environment variables:');
-  console.error(JSON.stringify(parsed.error.flatten().fieldErrors, null, 2));
+  error.details.forEach((d) => console.error(' -', d.message));
   process.exit(1);
 }
 
-export const env = parsed.data;
+export const env = value as {
+  NODE_ENV: 'development' | 'production' | 'test';
+  PORT: number;
+  DATABASE_URL: string;
+  JWT_SECRET: string;
+  JWT_EXPIRES_IN: string;
+};

@@ -17,13 +17,13 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "helmet": "^8.0.0",
+    "joi": "^18.0.2",
     "jsonwebtoken": "^9.0.2",
     "neverthrow": "^8.1.0",
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.2",
     "tsyringe": "^4.8.0",
-    "typeorm": "^0.3.20",
-    "zod": "^3.23.8"
+    "typeorm": "^0.3.20"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

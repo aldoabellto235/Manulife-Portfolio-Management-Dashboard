@@ -7,6 +7,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 
 import { errorHandler } from './interfaces/middleware/error-handler.middleware';
+import { authRoutes } from './interfaces/http/routes/auth.routes';
 
 const app = express();
 
@@ -17,6 +18,8 @@ app.use(express.json());
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+app.use('/auth', authRoutes);
 
 app.use(errorHandler);
 

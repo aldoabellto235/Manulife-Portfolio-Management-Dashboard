@@ -1,0 +1,16 @@
+import { injectable } from 'tsyringe';
+import bcrypt from 'bcrypt';
+import { IPasswordHasher } from '../../application/ports/password-hasher.port';
+
+@injectable()
+export class BcryptPasswordHasher implements IPasswordHasher {
+  private readonly SALT_ROUNDS = 12;
+
+  async hash(plain: string): Promise<string> {
+    return bcrypt.hash(plain, this.SALT_ROUNDS);
+  }
+
+  async compare(plain: string, hashed: string): Promise<boolean> {
+    return bcrypt.compare(plain, hashed);
+  }
+}
