@@ -1,12 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
 import { errorResponse } from '../../shared/api-response';
+import { logger } from '../../shared/logger';
 
 export const errorHandler = (
   err: unknown,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction,
 ): void => {
-  console.error('[Unhandled Error]', err);
+  logger.error('Unhandled error', {
+    method: req.method,
+    url: req.originalUrl,
+    error: err instanceof Error ? { message: err.message, stack: err.stack } : err,
+  });
   res.status(500).json(errorResponse('INTERNAL_SERVER_ERROR', 500));
 };

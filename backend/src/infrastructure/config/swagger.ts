@@ -77,6 +77,63 @@ const options: swaggerJsdoc.Options = {
             createdAt: { type: 'string', format: 'date-time' },
           },
         },
+        // ─── Investment / Asset schemas ───────────────────────────────────
+        AddInvestmentBody: {
+          type: 'object',
+          required: ['type', 'name', 'symbol', 'purchasePrice', 'currentValue', 'quantity'],
+          properties: {
+            type: { type: 'string', enum: ['STOCK', 'BOND', 'MUTUAL_FUND'], example: 'STOCK' },
+            name: { type: 'string', example: 'Bank Central Asia' },
+            symbol: { type: 'string', example: 'BBCA' },
+            purchasePrice: { type: 'number', example: 9500.00 },
+            currentValue: { type: 'number', example: 10250.00 },
+            quantity: { type: 'integer', example: 10 },
+            currency: { type: 'string', example: 'IDR', default: 'IDR' },
+          },
+        },
+        EditInvestmentBody: {
+          type: 'object',
+          properties: {
+            currentValue: { type: 'number', example: 10500.00 },
+            quantity: { type: 'integer', example: 15 },
+          },
+        },
+        AssetData: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            userId: { type: 'string', format: 'uuid' },
+            type: { type: 'string', enum: ['STOCK', 'BOND', 'MUTUAL_FUND'] },
+            name: { type: 'string', example: 'Bank Central Asia' },
+            symbol: { type: 'string', example: 'BBCA' },
+            purchasePrice: { type: 'number', example: 9500.00 },
+            currentValue: { type: 'number', example: 10250.00 },
+            currency: { type: 'string', example: 'IDR' },
+            quantity: { type: 'integer', example: 10 },
+            gainLossPercent: { type: 'number', example: 17.0 },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' },
+          },
+        },
+        PortfolioSummary: {
+          type: 'object',
+          properties: {
+            totalPurchaseValue: { type: 'number', example: 95000000 },
+            totalCurrentValue: { type: 'number', example: 102500000 },
+            totalGainLoss: { type: 'number', example: 7500000 },
+            gainLossPercent: { type: 'number', example: 7.89 },
+          },
+        },
+        PortfolioData: {
+          type: 'object',
+          properties: {
+            assets: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/AssetData' },
+            },
+            summary: { $ref: '#/components/schemas/PortfolioSummary' },
+          },
+        },
       },
     },
     paths: {
@@ -281,6 +338,210 @@ const options: swaggerJsdoc.Options = {
                 },
               },
             },
+          },
+        },
+      },
+      // ─── Portfolio ───────────────────────────────────────────────────────
+      '/portfolio': {
+        get: {
+          tags: ['Portfolio'],
+          summary: 'Get the authenticated user\'s full portfolio with summary',
+          security: [{ bearerAuth: [] }],
+          responses: {
+            200: {
+              description: 'Portfolio fetched successfully',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      data: { $ref: '#/components/schemas/PortfolioData' },
+                      status: { type: 'string', enum: ['ok'], example: 'ok' },
+                      code: { type: 'integer', example: 200 },
+                    },
+                  },
+                },
+              },
+            },
+            401: { description: 'Unauthorized', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          },
+        },
+      },
+      // ─── Investments ─────────────────────────────────────────────────────
+      '/investments': {
+        get: {
+          tags: ['Investments'],
+          summary: 'List investments with pagination',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            {
+              name: 'page',
+              in: 'query',
+              schema: { type: 'integer', default: 1, minimum: 1 },
+              description: 'Page number (1-based)',
+            },
+            {
+              name: 'limit',
+              in: 'query',
+              schema: { type: 'integer', default: 10, minimum: 1, maximum: 100 },
+              description: 'Items per page',
+            },
+          ],
+          responses: {
+            200: {
+              description: 'Paginated list of investments',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      data: {
+                        type: 'object',
+                        properties: {
+                          datas: { type: 'array', items: { $ref: '#/components/schemas/AssetData' } },
+                          page: { type: 'integer', example: 1 },
+                          limit: { type: 'integer', example: 10 },
+                          total: { type: 'integer', example: 42 },
+                        },
+                      },
+                      status: { type: 'string', enum: ['ok'], example: 'ok' },
+                      code: { type: 'integer', example: 200 },
+                    },
+                  },
+                },
+              },
+            },
+            401: { description: 'Unauthorized', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          },
+        },
+        post: {
+          tags: ['Investments'],
+          summary: 'Add a new investment (asset)',
+          security: [{ bearerAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/AddInvestmentBody' },
+              },
+            },
+          },
+          responses: {
+            201: {
+              description: 'Investment created',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      data: { $ref: '#/components/schemas/AssetData' },
+                      status: { type: 'string', enum: ['ok'], example: 'ok' },
+                      code: { type: 'integer', example: 201 },
+                    },
+                  },
+                },
+              },
+            },
+            400: { description: 'Validation error', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+            401: { description: 'Unauthorized', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          },
+        },
+      },
+      '/investments/{id}': {
+        get: {
+          tags: ['Investments'],
+          summary: 'Get a single investment by ID',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              schema: { type: 'string', format: 'uuid' },
+              description: 'Asset ID',
+            },
+          ],
+          responses: {
+            200: {
+              description: 'Investment found',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      data: { $ref: '#/components/schemas/AssetData' },
+                      status: { type: 'string', enum: ['ok'], example: 'ok' },
+                      code: { type: 'integer', example: 200 },
+                    },
+                  },
+                },
+              },
+            },
+            401: { description: 'Unauthorized', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+            404: { description: 'Asset not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          },
+        },
+        patch: {
+          tags: ['Investments'],
+          summary: 'Update current value or quantity of an investment',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              schema: { type: 'string', format: 'uuid' },
+              description: 'Asset ID',
+            },
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/EditInvestmentBody' },
+              },
+            },
+          },
+          responses: {
+            200: {
+              description: 'Investment updated',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      data: { $ref: '#/components/schemas/AssetData' },
+                      status: { type: 'string', enum: ['ok'], example: 'ok' },
+                      code: { type: 'integer', example: 200 },
+                    },
+                  },
+                },
+              },
+            },
+            400: { description: 'Validation error', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+            401: { description: 'Unauthorized', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+            403: { description: 'Ownership violation', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+            404: { description: 'Asset not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          },
+        },
+        delete: {
+          tags: ['Investments'],
+          summary: 'Delete an investment',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              schema: { type: 'string', format: 'uuid' },
+              description: 'Asset ID',
+            },
+          ],
+          responses: {
+            204: { description: 'Investment deleted' },
+            401: { description: 'Unauthorized', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+            403: { description: 'Ownership violation', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+            404: { description: 'Asset not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
           },
         },
       },
