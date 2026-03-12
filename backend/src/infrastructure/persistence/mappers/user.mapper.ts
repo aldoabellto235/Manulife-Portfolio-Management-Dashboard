@@ -7,7 +7,7 @@ export class UserMapper {
   static toDomain(raw: UserModel): User {
     return User.reconstitute({
       id: UserId(raw.id),
-      email: Email.create(raw.email)._unsafeUnwrap(),
+      email: Email.create(raw.email).unwrap(),
       passwordHash: raw.passwordHash,
       createdAt: raw.createdAt,
     });

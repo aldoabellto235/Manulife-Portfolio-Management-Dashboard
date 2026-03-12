@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { errorResponse } from '../../shared/api-response';
 
 export const errorHandler = (
   err: unknown,
@@ -7,5 +8,5 @@ export const errorHandler = (
   _next: NextFunction,
 ): void => {
   console.error('[Unhandled Error]', err);
-  res.status(500).json({ error: 'INTERNAL_SERVER_ERROR' });
+  res.status(500).json(errorResponse('INTERNAL_SERVER_ERROR', 500));
 };

@@ -1,5 +1,5 @@
 import { inject, injectable } from 'tsyringe';
-import { err, ok, Result } from 'neverthrow';
+import { err, ok, Result } from '../../../shared/result';
 import { Email } from '../../../domain/value-objects/email.vo';
 import { AuthError } from '../../../domain/errors/auth.errors';
 import { IUserRepository } from '../../../domain/repositories/user.repository';
@@ -25,15 +25,15 @@ export class LoginUserUseCase {
 
   async execute(
     input: LoginUserInput,
-  ): Promise<Result<LoginUserOutput, AuthError | 'INVALID_EMAIL'>> {
+  ): Promise<Result<LoginUserOutput, AuthError>> {
     const emailResult = Email.create(input.email);
-    if (emailResult.isErr()) return err({ type: 'INVALID_CREDENTIALS' });
+    if (emailResult.isErr()) return err({ type: 'INVALID_CREDENTIALS' } as AuthError);
 
     const user = await this.userRepo.findByEmail(emailResult.value);
-    if (!user) return err({ type: 'INVALID_CREDENTIALS' });
+    if (!user) return err({ type: 'INVALID_CREDENTIALS' } as AuthError);
 
     const passwordMatch = await this.hasher.compare(input.password, user.passwordHash);
-    if (!passwordMatch) return err({ type: 'INVALID_CREDENTIALS' });
+    if (!passwordMatch) return err({ type: 'INVALID_CREDENTIALS' } as AuthError);
 
     const accessToken = this.tokenService.sign({ userId: user.id });
 

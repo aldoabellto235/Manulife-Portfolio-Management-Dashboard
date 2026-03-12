@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ObjectSchema } from 'joi';
+import { errorResponse } from '../../shared/api-response';
 
 export const validate =
   (schema: ObjectSchema) =>
@@ -10,10 +11,8 @@ export const validate =
     });
 
     if (error) {
-      res.status(400).json({
-        error: 'VALIDATION_ERROR',
-        issues: error.details.map((d) => d.message),
-      });
+      const message = error.details.map((d) => d.message).join(', ');
+      res.status(400).json(errorResponse(message, 400));
       return;
     }
 

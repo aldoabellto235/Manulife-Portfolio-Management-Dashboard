@@ -9,6 +9,8 @@ const schema = Joi.object({
     'string.min': 'JWT_SECRET must be at least 32 characters',
   }),
   JWT_EXPIRES_IN: Joi.string().default('7d'),
+  BASIC_AUTH_USER: Joi.string().required(),
+  BASIC_AUTH_PASSWORD: Joi.string().required(),
 }).unknown(true);
 
 const { error, value } = schema.validate(process.env, { abortEarly: false });
@@ -25,4 +27,6 @@ export const env = value as {
   DATABASE_URL: string;
   JWT_SECRET: string;
   JWT_EXPIRES_IN: string;
+  BASIC_AUTH_USER: string;
+  BASIC_AUTH_PASSWORD: string;
 };

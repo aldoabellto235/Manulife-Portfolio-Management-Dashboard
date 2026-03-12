@@ -1,6 +1,6 @@
 import { inject, injectable } from 'tsyringe';
-import { err, ok, Result } from 'neverthrow';
 import { randomUUID } from 'crypto';
+import { err, ok, Result } from '../../../shared/result';
 import { User } from '../../../domain/entities/user.entity';
 import { Email } from '../../../domain/value-objects/email.vo';
 import { UserId } from '../../../domain/value-objects/branded';
@@ -33,7 +33,7 @@ export class RegisterUserUseCase {
     if (emailResult.isErr()) return err(emailResult.error);
 
     const existing = await this.userRepo.findByEmail(emailResult.value);
-    if (existing) return err({ type: 'EMAIL_ALREADY_EXISTS' });
+    if (existing) return err({ type: 'EMAIL_ALREADY_EXISTS' } as AuthError);
 
     const passwordHash = await this.hasher.hash(input.password);
 

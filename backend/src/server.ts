@@ -6,8 +6,11 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 
+import swaggerUi from 'swagger-ui-express';
 import { errorHandler } from './interfaces/middleware/error-handler.middleware';
 import { authRoutes } from './interfaces/http/routes/auth.routes';
+import { basicAuthMiddleware } from './interfaces/middleware/basic-auth.middleware';
+import { swaggerSpec } from './infrastructure/config/swagger';
 
 const app = express();
 
@@ -15,9 +18,12 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
-app.get('/health', (_req, res) => {
+app.get('/health', basicAuthMiddleware, (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get('/docs.json', (_req, res) => res.json(swaggerSpec));
 
 app.use('/auth', authRoutes);
 

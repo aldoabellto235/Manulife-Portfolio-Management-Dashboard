@@ -1,4 +1,4 @@
-import { err, ok, Result } from 'neverthrow';
+import { err, ok, Result } from '../../shared/result';
 
 export class Email {
   private constructor(private readonly _value: string) {}
