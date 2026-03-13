@@ -15,7 +15,10 @@ export interface AssetDTO {
 }
 
 export interface PortfolioDTO {
-  assets: AssetDTO[];
+  assets: {
+    pagination: { page: number; limit: number; total: number };
+    data: AssetDTO[];
+  };
   summary: {
     totalPurchaseValue: number;
     totalCurrentValue: number;

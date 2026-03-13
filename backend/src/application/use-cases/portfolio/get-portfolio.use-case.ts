@@ -5,6 +5,12 @@ import { IAssetRepository } from '../../../domain/repositories/asset.repository'
 import { PerformanceCalculatorService } from '../../../domain/services/performance-calculator.service';
 import { PortfolioDTO, toAssetDTO } from '../../dtos/asset.dto';
 
+export interface GetPortfolioInput {
+  userId: string;
+  page: number;
+  limit: number;
+}
+
 @injectable()
 export class GetPortfolioUseCase {
   constructor(
@@ -12,12 +18,21 @@ export class GetPortfolioUseCase {
     @inject(PerformanceCalculatorService) private readonly calculator: PerformanceCalculatorService,
   ) {}
 
-  async execute(userId: string): Promise<Result<PortfolioDTO, never>> {
-    const assets = await this.assetRepo.findByUserId(UserId(userId));
-    const summary = this.calculator.calculate(assets);
+  async execute(input: GetPortfolioInput): Promise<Result<PortfolioDTO, never>> {
+    const allAssets = await this.assetRepo.findByUserId(UserId(input.userId));
+    const summary = this.calculator.calculate(allAssets);
+
+    const { items, total } = await this.assetRepo.findByUserIdPaginated(
+      UserId(input.userId),
+      input.page,
+      input.limit,
+    );
 
     return ok({
-      assets: assets.map(toAssetDTO),
+      assets: {
+        pagination: { page: input.page, limit: input.limit, total },
+        data: items.map(toAssetDTO),
+      },
       summary,
     });
   }

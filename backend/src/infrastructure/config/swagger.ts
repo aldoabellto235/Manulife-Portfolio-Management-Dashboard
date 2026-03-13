@@ -156,8 +156,18 @@ const options: swaggerJsdoc.Options = {
           type: 'object',
           properties: {
             assets: {
-              type: 'array',
-              items: { $ref: '#/components/schemas/AssetData' },
+              type: 'object',
+              properties: {
+                pagination: {
+                  type: 'object',
+                  properties: {
+                    page: { type: 'integer', example: 1 },
+                    limit: { type: 'integer', example: 10 },
+                    total: { type: 'integer', example: 42 },
+                  },
+                },
+                data: { type: 'array', items: { $ref: '#/components/schemas/AssetData' } },
+              },
             },
             summary: { $ref: '#/components/schemas/PortfolioSummary' },
           },
@@ -373,8 +383,13 @@ const options: swaggerJsdoc.Options = {
       '/portfolio': {
         get: {
           tags: ['Portfolio'],
-          summary: 'Get the authenticated user\'s full portfolio with summary',
+          summary: 'Get portfolio summary + paginated holdings',
+          description: 'Summary is always computed from all holdings. Only the assets list is paginated.',
           security: [{ bearerAuth: [] }],
+          parameters: [
+            { name: 'page', in: 'query', schema: { type: 'integer', default: 1, minimum: 1 }, description: 'Page number' },
+            { name: 'limit', in: 'query', schema: { type: 'integer', default: 10, minimum: 1, maximum: 100 }, description: 'Items per page' },
+          ],
           responses: {
             200: {
               description: 'Portfolio fetched successfully',
@@ -423,15 +438,15 @@ const options: swaggerJsdoc.Options = {
                   schema: {
                     type: 'object',
                     properties: {
-                      data: {
+                      pagination: {
                         type: 'object',
                         properties: {
-                          datas: { type: 'array', items: { $ref: '#/components/schemas/AssetData' } },
                           page: { type: 'integer', example: 1 },
                           limit: { type: 'integer', example: 10 },
                           total: { type: 'integer', example: 42 },
                         },
                       },
+                      data: { type: 'array', items: { $ref: '#/components/schemas/AssetData' } },
                       status: { type: 'string', enum: ['ok'], example: 'ok' },
                       code: { type: 'integer', example: 200 },
                     },
@@ -591,15 +606,15 @@ const options: swaggerJsdoc.Options = {
                   schema: {
                     type: 'object',
                     properties: {
-                      data: {
+                      pagination: {
                         type: 'object',
                         properties: {
-                          datas: { type: 'array', items: { $ref: '#/components/schemas/TransactionData' } },
                           page: { type: 'integer', example: 1 },
                           limit: { type: 'integer', example: 10 },
                           total: { type: 'integer', example: 25 },
                         },
                       },
+                      data: { type: 'array', items: { $ref: '#/components/schemas/TransactionData' } },
                       status: { type: 'string', enum: ['ok'], example: 'ok' },
                       code: { type: 'integer', example: 200 },
                     },

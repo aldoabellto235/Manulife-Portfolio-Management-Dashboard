@@ -13,15 +13,13 @@ export interface ApiError {
   };
 }
 
-export interface PaginationData<T> {
-  datas: T[];
-  page: number;
-  limit: number;
-  total: number;
-}
-
 export interface ApiPagination<T> {
-  data: PaginationData<T>;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+  };
+  data: T[];
   status: 'ok';
   code: number;
 }
@@ -42,13 +40,14 @@ export const errorResponse = (message: string, code: number): ApiError => ({
 });
 
 export const paginationResponse = <T>(
-  datas: T[],
+  data: T[],
   page: number,
   limit: number,
   total: number,
   code = 200,
 ): ApiPagination<T> => ({
-  data: { datas, page, limit, total },
+  pagination: { page, limit, total },
+  data,
   status: 'ok',
   code,
 });
