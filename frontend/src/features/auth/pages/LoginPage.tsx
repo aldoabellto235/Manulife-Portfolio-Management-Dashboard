@@ -14,6 +14,7 @@ import Link from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
+import { useSnackbar } from 'notistack';
 import { AuthLayout } from '../components/AuthLayout';
 import { useLoginMutation } from '../api/authApi';
 import { tokens } from '@/shared/theme/tokens';
@@ -60,6 +61,7 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
   const [login, { isLoading }] = useLoginMutation();
 
   const {
@@ -72,6 +74,7 @@ export function LoginPage() {
     setApiError(null);
     try {
       await login(data).unwrap();
+      enqueueSnackbar('Welcome back!', { variant: 'success' });
       navigate('/');
     } catch (err) {
       setApiError(getApiErrorMessage(err));

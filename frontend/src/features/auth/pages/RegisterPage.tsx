@@ -15,6 +15,7 @@ import Alert from '@mui/material/Alert';
 import LinearProgress from '@mui/material/LinearProgress';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
+import { useSnackbar } from 'notistack';
 import { AuthLayout } from '../components/AuthLayout';
 import { useRegisterMutation } from '../api/authApi';
 import { tokens } from '@/shared/theme/tokens';
@@ -88,6 +89,7 @@ export function RegisterPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
   const [registerUser, { isLoading }] = useRegisterMutation();
 
   const {
@@ -104,6 +106,7 @@ export function RegisterPage() {
     setApiError(null);
     try {
       await registerUser({ email: data.email, password: data.password }).unwrap();
+      enqueueSnackbar('Account created successfully!', { variant: 'success' });
       navigate('/');
     } catch (err) {
       setApiError(getApiErrorMessage(err));
