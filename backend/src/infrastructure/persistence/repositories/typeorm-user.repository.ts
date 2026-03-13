@@ -6,6 +6,7 @@ import { Email } from '../../../domain/value-objects/email.vo';
 import { UserId } from '../../../domain/value-objects/branded';
 import { UserModel } from '../typeorm/models/user.model';
 import { UserMapper } from '../mappers/user.mapper';
+import { mapPgError } from '../typeorm/pg-error.mapper';
 
 @injectable()
 export class TypeOrmUserRepository implements IUserRepository {
@@ -26,6 +27,14 @@ export class TypeOrmUserRepository implements IUserRepository {
   }
 
   async save(user: User): Promise<void> {
-    await this.repo.save(UserMapper.toPersistence(user));
+    try {
+      await this.repo.save(UserMapper.toPersistence(user));
+    } catch (err) {
+      const mapped = mapPgError(err);
+      if (mapped?.type === 'DUPLICATE_ENTRY') {
+        throw Object.assign(new Error('EMAIL_ALREADY_EXISTS'), { type: 'EMAIL_ALREADY_EXISTS' });
+      }
+      throw err;
+    }
   }
 }

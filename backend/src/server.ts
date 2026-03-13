@@ -9,7 +9,9 @@ import helmet from 'helmet';
 
 import swaggerUi from 'swagger-ui-express';
 import { errorHandler } from './interfaces/middleware/error-handler.middleware';
+import { requestIdMiddleware } from './interfaces/middleware/request-id.middleware';
 import { requestLogger } from './interfaces/middleware/request-logger.middleware';
+import { authRateLimit, globalRateLimit } from './interfaces/middleware/rate-limit.middleware';
 import { authRoutes } from './interfaces/http/routes/auth.routes';
 import { investmentRoutes } from './interfaces/http/routes/investment.routes';
 import { portfolioRoutes } from './interfaces/http/routes/portfolio.routes';
@@ -18,11 +20,14 @@ import { basicAuthMiddleware } from './interfaces/middleware/basic-auth.middlewa
 import { swaggerSpec } from './infrastructure/config/swagger';
 
 const app = express();
+const API_PREFIX_V1 = '/api/v1';
 
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
+app.use(requestIdMiddleware);
 app.use(requestLogger);
+app.use(globalRateLimit);
 
 app.get('/health', basicAuthMiddleware, (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -31,18 +36,22 @@ app.get('/health', basicAuthMiddleware, (_req, res) => {
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get('/docs.json', (_req, res) => res.json(swaggerSpec));
 
-app.use('/auth', authRoutes);
-app.use('/investments', investmentRoutes);
-app.use('/portfolio', portfolioRoutes);
-app.use('/transactions', transactionRoutes);
+app.use(`${API_PREFIX_V1}/auth`, authRateLimit, authRoutes);
+app.use(`${API_PREFIX_V1}/investments`, investmentRoutes);
+app.use(`${API_PREFIX_V1}/portfolio`, portfolioRoutes);
+app.use(`${API_PREFIX_V1}/transactions`, transactionRoutes);
 
 app.use(errorHandler);
 
 AppDataSource.initialize()
   .then(() => {
     logger.info('Database connected');
-    app.listen(env.PORT, () => {
+    const server = app.listen(env.PORT, () => {
       logger.info(`Server running on port ${env.PORT}`, { env: env.NODE_ENV });
+    });
+
+    process.on('SIGTERM', () => {
+      server.close(() => process.exit(0));
     });
   })
   .catch((err) => {
