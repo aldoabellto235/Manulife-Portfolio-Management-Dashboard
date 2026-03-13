@@ -13,7 +13,7 @@ import { tokens } from '@/shared/theme/tokens';
 
 export function DashboardPage() {
   const { data, isLoading, isError } = useGetPortfolioQuery();
-  useGetMeQuery(); // populate user in store
+  useGetMeQuery();
 
   const portfolio = data?.data;
 
@@ -70,7 +70,7 @@ export function DashboardPage() {
         >
           Holdings
         </Typography>
-        <AssetTable assets={portfolio?.assets ?? []} isLoading={isLoading} />
+        <AssetTable />
       </Box>
     </AppLayout>
   );

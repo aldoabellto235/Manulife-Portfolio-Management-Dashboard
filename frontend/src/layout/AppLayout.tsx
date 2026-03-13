@@ -19,7 +19,7 @@ import { tokens } from '@/shared/theme/tokens';
 
 const NAV_LINKS = [
   { label: 'Dashboard', path: '/' },
-  { label: 'Investments', path: '/investments/new' },
+  { label: 'Transactions', path: '/transactions' },
 ];
 
 interface AppLayoutProps {
@@ -111,7 +111,10 @@ export function AppLayout({ children }: AppLayoutProps) {
           {/* Nav links */}
           <Box sx={{ display: 'flex', gap: 0.5, flex: 1 }}>
             {NAV_LINKS.map((link) => {
-              const isActive = location.pathname === link.path;
+              const isActive =
+                link.path === '/'
+                  ? location.pathname === '/'
+                  : location.pathname.startsWith(link.path);
               return (
                 <Button
                   key={link.path}

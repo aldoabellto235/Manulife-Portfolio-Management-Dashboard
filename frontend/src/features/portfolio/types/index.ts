@@ -34,8 +34,8 @@ export interface PortfolioResponse {
 }
 
 export interface InvestmentsResponse {
-  data: {
-    datas: Asset[];
+  data: Asset[];
+  pagination: {
     page: number;
     limit: number;
     total: number;

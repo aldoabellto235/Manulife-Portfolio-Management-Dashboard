@@ -6,6 +6,7 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import TablePagination from '@mui/material/TablePagination';
 import IconButton from '@mui/material/IconButton';
 import Chip from '@mui/material/Chip';
 import Skeleton from '@mui/material/Skeleton';
@@ -20,10 +21,11 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
-import { useDeleteInvestmentMutation } from '../api/portfolioApi';
-import type { Asset } from '../types';
+import { useGetInvestmentsQuery, useDeleteInvestmentMutation } from '../api/portfolioApi';
 import { formatCurrency, formatPercent } from '@/shared/utils/formatCurrency';
 import { tokens } from '@/shared/theme/tokens';
+
+const ROWS_PER_PAGE_OPTIONS = [5, 10, 25];
 
 const TYPE_LABELS: Record<string, string> = {
   STOCK: 'Stock',
@@ -37,16 +39,28 @@ const TYPE_COLORS: Record<string, 'default' | 'primary' | 'secondary'> = {
   MUTUAL_FUND: 'default',
 };
 
-interface Props {
-  assets: Asset[];
-  isLoading: boolean;
-}
-
-export function AssetTable({ assets, isLoading }: Props) {
+export function AssetTable() {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteInvestment, { isLoading: isDeleting }] = useDeleteInvestmentMutation();
+
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const { data, isLoading } = useGetInvestmentsQuery({
+    page: page + 1,
+    limit: rowsPerPage,
+  });
+
+  const assets = data?.data ?? [];
+  const total = data?.pagination.total ?? 0;
+
+  const handleChangePage = (_: unknown, newPage: number) => setPage(newPage);
+  const handleChangeRowsPerPage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(e.target.value, 10));
+    setPage(0);
+  };
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -57,7 +71,13 @@ export function AssetTable({ assets, isLoading }: Props) {
 
   if (isLoading) {
     return (
-      <Box sx={{ border: `1px solid ${tokens.color.border}`, borderRadius: tokens.radius.lg, overflow: 'hidden' }}>
+      <Box
+        sx={{
+          border: `1px solid ${tokens.color.border}`,
+          borderRadius: tokens.radius.lg,
+          overflow: 'hidden',
+        }}
+      >
         {[1, 2, 3, 4].map((i) => (
           <Skeleton key={i} variant="rectangular" height={52} sx={{ mb: '1px' }} />
         ))}
@@ -65,7 +85,7 @@ export function AssetTable({ assets, isLoading }: Props) {
     );
   }
 
-  if (!isLoading && assets.length === 0) {
+  if (assets.length === 0) {
     return (
       <Box
         sx={{
@@ -118,7 +138,9 @@ export function AssetTable({ assets, isLoading }: Props) {
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Typography sx={{ fontFamily: tokens.font.mono, fontSize: tokens.fontSize.sm }}>
+                    <Typography
+                      sx={{ fontFamily: tokens.font.mono, fontSize: tokens.fontSize.sm }}
+                    >
                       {asset.symbol}
                     </Typography>
                   </TableCell>
@@ -131,17 +153,23 @@ export function AssetTable({ assets, isLoading }: Props) {
                     />
                   </TableCell>
                   <TableCell align="right">
-                    <Typography sx={{ fontFamily: tokens.font.mono, fontSize: tokens.fontSize.sm }}>
+                    <Typography
+                      sx={{ fontFamily: tokens.font.mono, fontSize: tokens.fontSize.sm }}
+                    >
                       {asset.quantity.toLocaleString()}
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
-                    <Typography sx={{ fontFamily: tokens.font.mono, fontSize: tokens.fontSize.sm }}>
+                    <Typography
+                      sx={{ fontFamily: tokens.font.mono, fontSize: tokens.fontSize.sm }}
+                    >
                       {formatCurrency(asset.purchasePrice, asset.currency)}
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
-                    <Typography sx={{ fontFamily: tokens.font.mono, fontSize: tokens.fontSize.sm }}>
+                    <Typography
+                      sx={{ fontFamily: tokens.font.mono, fontSize: tokens.fontSize.sm }}
+                    >
                       {formatCurrency(asset.currentValue, asset.currency)}
                     </Typography>
                   </TableCell>
@@ -191,6 +219,21 @@ export function AssetTable({ assets, isLoading }: Props) {
             })}
           </TableBody>
         </Table>
+
+        <TablePagination
+          component="div"
+          count={total}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          rowsPerPageOptions={ROWS_PER_PAGE_OPTIONS}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          sx={{
+            borderTop: `1px solid ${tokens.color.border}`,
+            fontSize: tokens.fontSize.sm,
+            '.MuiTablePagination-toolbar': { minHeight: 48 },
+          }}
+        />
       </TableContainer>
 
       {/* Delete confirmation dialog */}
@@ -212,7 +255,10 @@ export function AssetTable({ assets, isLoading }: Props) {
             variant="contained"
             size="small"
             disabled={isDeleting}
-            sx={{ backgroundColor: tokens.color.danger, '&:hover': { backgroundColor: '#b91c1c' } }}
+            sx={{
+              backgroundColor: tokens.color.danger,
+              '&:hover': { backgroundColor: '#b91c1c' },
+            }}
           >
             Delete
           </Button>
