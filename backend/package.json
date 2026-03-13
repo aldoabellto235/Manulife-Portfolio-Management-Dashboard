@@ -4,7 +4,7 @@
   "description": "Portfolio Management Dashboard — Backend",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/server.ts",
+    "dev": "ts-node-dev --respawn --transpile-only --exit-child -r tsconfig-paths/register src/server.ts",
     "build": "tsc --project tsconfig.json",
     "start": "node dist/server.js",
     "db:migrate": "typeorm-ts-node-commonjs migration:run -d src/infrastructure/persistence/typeorm/data-source.ts",
