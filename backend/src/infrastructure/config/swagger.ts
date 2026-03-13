@@ -124,6 +124,34 @@ const options: swaggerJsdoc.Options = {
             gainLossPercent: { type: 'number', example: 7.89 },
           },
         },
+        // ─── Transaction schemas ──────────────────────────────────────────
+        AddTransactionBody: {
+          type: 'object',
+          required: ['assetId', 'type', 'quantity', 'price'],
+          properties: {
+            assetId: { type: 'string', format: 'uuid', example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' },
+            type: { type: 'string', enum: ['BUY', 'SELL'], example: 'BUY' },
+            quantity: { type: 'integer', example: 10 },
+            price: { type: 'number', example: 9500.00 },
+            currency: { type: 'string', example: 'IDR', default: 'IDR' },
+            date: { type: 'string', format: 'date-time', example: '2026-03-13T10:00:00.000Z' },
+          },
+        },
+        TransactionData: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            userId: { type: 'string', format: 'uuid' },
+            assetId: { type: 'string', format: 'uuid' },
+            type: { type: 'string', enum: ['BUY', 'SELL'] },
+            quantity: { type: 'integer', example: 10 },
+            price: { type: 'number', example: 9500.00 },
+            currency: { type: 'string', example: 'IDR' },
+            totalValue: { type: 'number', example: 95000.00 },
+            date: { type: 'string', format: 'date-time' },
+            createdAt: { type: 'string', format: 'date-time' },
+          },
+        },
         PortfolioData: {
           type: 'object',
           properties: {
@@ -542,6 +570,93 @@ const options: swaggerJsdoc.Options = {
             401: { description: 'Unauthorized', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
             403: { description: 'Ownership violation', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
             404: { description: 'Asset not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          },
+        },
+      },
+      // ─── Transactions ────────────────────────────────────────────────────
+      '/transactions': {
+        get: {
+          tags: ['Transactions'],
+          summary: 'List transaction history with pagination',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { name: 'page', in: 'query', schema: { type: 'integer', default: 1, minimum: 1 }, description: 'Page number' },
+            { name: 'limit', in: 'query', schema: { type: 'integer', default: 10, minimum: 1, maximum: 100 }, description: 'Items per page' },
+          ],
+          responses: {
+            200: {
+              description: 'Paginated transaction history',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      data: {
+                        type: 'object',
+                        properties: {
+                          datas: { type: 'array', items: { $ref: '#/components/schemas/TransactionData' } },
+                          page: { type: 'integer', example: 1 },
+                          limit: { type: 'integer', example: 10 },
+                          total: { type: 'integer', example: 25 },
+                        },
+                      },
+                      status: { type: 'string', enum: ['ok'], example: 'ok' },
+                      code: { type: 'integer', example: 200 },
+                    },
+                  },
+                },
+              },
+            },
+            401: { description: 'Unauthorized', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          },
+        },
+        post: {
+          tags: ['Transactions'],
+          summary: 'Record a new BUY or SELL transaction',
+          security: [{ bearerAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/AddTransactionBody' },
+              },
+            },
+          },
+          responses: {
+            201: {
+              description: 'Transaction recorded',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      data: { $ref: '#/components/schemas/TransactionData' },
+                      status: { type: 'string', enum: ['ok'], example: 'ok' },
+                      code: { type: 'integer', example: 201 },
+                    },
+                  },
+                },
+              },
+            },
+            400: { description: 'Validation error or insufficient quantity for SELL', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+            401: { description: 'Unauthorized', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+            404: { description: 'Asset not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          },
+        },
+      },
+      '/transactions/{id}': {
+        delete: {
+          tags: ['Transactions'],
+          summary: 'Delete a transaction',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' }, description: 'Transaction ID' },
+          ],
+          responses: {
+            204: { description: 'Transaction deleted' },
+            401: { description: 'Unauthorized', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+            403: { description: 'Ownership violation', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+            404: { description: 'Transaction not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
           },
         },
       },

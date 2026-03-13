@@ -13,6 +13,7 @@ import { requestLogger } from './interfaces/middleware/request-logger.middleware
 import { authRoutes } from './interfaces/http/routes/auth.routes';
 import { investmentRoutes } from './interfaces/http/routes/investment.routes';
 import { portfolioRoutes } from './interfaces/http/routes/portfolio.routes';
+import { transactionRoutes } from './interfaces/http/routes/transaction.routes';
 import { basicAuthMiddleware } from './interfaces/middleware/basic-auth.middleware';
 import { swaggerSpec } from './infrastructure/config/swagger';
 
@@ -33,6 +34,7 @@ app.get('/docs.json', (_req, res) => res.json(swaggerSpec));
 app.use('/auth', authRoutes);
 app.use('/investments', investmentRoutes);
 app.use('/portfolio', portfolioRoutes);
+app.use('/transactions', transactionRoutes);
 
 app.use(errorHandler);
 

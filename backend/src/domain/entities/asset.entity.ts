@@ -3,6 +3,7 @@ import { AssetId, UserId } from '../value-objects/branded';
 import { Money } from '../value-objects/money.vo';
 import { AssetError } from '../errors/asset.errors';
 
+
 export type AssetType = 'STOCK' | 'BOND' | 'MUTUAL_FUND';
 
 interface AssetProps {
@@ -64,5 +65,29 @@ export class Asset {
   updateQuantity(quantity: number): void {
     this.props.quantity = quantity;
     this.props.updatedAt = new Date();
+  }
+
+  // Called when a BUY transaction is recorded.
+  // Recalculates weighted average purchase price and increases quantity.
+  addShares(qty: number, pricePerShare: Money): void {
+    const currentTotal = this.props.purchasePrice.amount * this.props.quantity;
+    const newTotal = pricePerShare.amount * qty;
+    const newQuantity = this.props.quantity + qty;
+    const newAvgPrice = (currentTotal + newTotal) / newQuantity;
+
+    this.props.purchasePrice = Money.create(newAvgPrice, this.props.purchasePrice.currency).unwrap();
+    this.props.quantity = newQuantity;
+    this.props.updatedAt = new Date();
+  }
+
+  // Called when a SELL transaction is recorded.
+  // Returns an error if the user tries to sell more than they hold.
+  removeShares(qty: number): Result<void, AssetError> {
+    if (qty > this.props.quantity) {
+      return err({ type: 'INSUFFICIENT_QUANTITY', available: this.props.quantity, requested: qty });
+    }
+    this.props.quantity -= qty;
+    this.props.updatedAt = new Date();
+    return ok(undefined);
   }
 }
