@@ -159,6 +159,15 @@ export function TransactionForm({ open, onClose, onSubmit, isLoading }: Props) {
                 error={Boolean(errors.assetId)}
                 helperText={errors.assetId?.message ?? (assets.length === 0 ? 'No investments found. Add one first.' : undefined)}
                 disabled={assets.length === 0}
+                slotProps={{
+                  select: {
+                    renderValue: (value) => {
+                      const asset = assets.find((a) => a.id === value);
+                      if (!asset) return '';
+                      return `${asset.name} (${asset.symbol})`;
+                    },
+                  },
+                }}
               >
                 {assets.map((a) => (
                   <MenuItem key={a.id} value={a.id}>

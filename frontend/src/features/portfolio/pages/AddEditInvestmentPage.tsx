@@ -30,7 +30,7 @@ export function AddEditInvestmentPage() {
   );
 
   const existing = isEdit
-    ? investmentsData?.data.datas.find((a) => a.id === id)
+    ? investmentsData?.data.find((a) => a.id === id)
     : undefined;
 
   const [addInvestment, { isLoading: isAdding }] = useAddInvestmentMutation();
