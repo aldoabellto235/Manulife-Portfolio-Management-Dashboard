@@ -9,7 +9,10 @@
     "start": "node dist/server.js",
     "db:migrate": "typeorm-ts-node-commonjs migration:run -d src/infrastructure/persistence/typeorm/data-source.ts",
     "db:migrate:revert": "typeorm-ts-node-commonjs migration:revert -d src/infrastructure/persistence/typeorm/data-source.ts",
-    "db:migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/infrastructure/persistence/typeorm/data-source.ts"
+    "db:migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/infrastructure/persistence/typeorm/data-source.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
@@ -32,12 +35,15 @@
     "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
+    "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.9.0",
     "@types/pg": "^8.11.10",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
     "@types/winston": "^2.4.4",
+    "jest": "^30.3.0",
+    "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",
