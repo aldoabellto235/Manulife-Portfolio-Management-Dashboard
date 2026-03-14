@@ -1,7 +1,7 @@
 import { inject, injectable } from 'tsyringe';
 import { DataSource, Repository } from 'typeorm';
 import { ITransactionRepository } from '../../../domain/repositories/transaction.repository';
-import { PaginatedResult } from '../../../domain/repositories/asset.repository';
+import { PaginatedResult } from '../../../shared/pagination';
 import { Transaction } from '../../../domain/entities/transaction.entity';
 import { AssetId, TransactionId, UserId } from '../../../domain/value-objects/branded';
 import { TransactionModel } from '../typeorm/models/transaction.model';

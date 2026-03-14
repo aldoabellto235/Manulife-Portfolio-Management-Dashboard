@@ -1,7 +1,8 @@
 import { inject, injectable } from 'tsyringe';
 import { ok, Result } from '../../../shared/result';
 import { UserId } from '../../../domain/value-objects/branded';
-import { IAssetRepository, PaginatedResult } from '../../../domain/repositories/asset.repository';
+import { IAssetRepository } from '../../../domain/repositories/asset.repository';
+import { PaginatedResult } from '../../../shared/pagination';
 import { AssetDTO, toAssetDTO } from '../../dtos/asset.dto';
 
 export interface ListInvestmentsInput {

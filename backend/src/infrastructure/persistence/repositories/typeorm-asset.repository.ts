@@ -1,6 +1,7 @@
 import { inject, injectable } from 'tsyringe';
-import { DataSource, Repository } from 'typeorm';
-import { IAssetRepository, PaginatedResult } from '../../../domain/repositories/asset.repository';
+import { DataSource, OptimisticLockVersionMismatchError, Repository } from 'typeorm';
+import { IAssetRepository } from '../../../domain/repositories/asset.repository';
+import { PaginatedResult } from '../../../shared/pagination';
 import { Asset } from '../../../domain/entities/asset.entity';
 import { AssetId, UserId } from '../../../domain/value-objects/branded';
 import { AssetModel } from '../typeorm/models/asset.model';
@@ -44,7 +45,14 @@ export class TypeOrmAssetRepository implements IAssetRepository {
   }
 
   async update(asset: Asset): Promise<void> {
-    await this.repo.save(AssetMapper.toPersistence(asset));
+    try {
+      await this.repo.save(AssetMapper.toPersistence(asset));
+    } catch (err) {
+      if (err instanceof OptimisticLockVersionMismatchError) {
+        throw Object.assign(new Error('CONCURRENT_MODIFICATION'), { type: 'CONCURRENT_MODIFICATION' });
+      }
+      throw err;
+    }
   }
 
   async delete(id: AssetId): Promise<void> {

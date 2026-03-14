@@ -2,7 +2,7 @@ import { inject, injectable } from 'tsyringe';
 import { ok, Result } from '../../../shared/result';
 import { UserId } from '../../../domain/value-objects/branded';
 import { ITransactionRepository } from '../../../domain/repositories/transaction.repository';
-import { PaginatedResult } from '../../../domain/repositories/asset.repository';
+import { PaginatedResult } from '../../../shared/pagination';
 import { TransactionDTO, toTransactionDTO } from '../../dtos/transaction.dto';
 
 export interface GetTransactionHistoryInput {

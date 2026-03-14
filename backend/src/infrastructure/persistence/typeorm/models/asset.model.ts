@@ -6,15 +6,12 @@ import {
   ManyToOne,
   PrimaryColumn,
   UpdateDateColumn,
+  VersionColumn,
 } from 'typeorm';
 import { UserModel } from './user.model';
+import { numericTransformer } from '../transformers/numeric.transformer';
 
 export type AssetTypeORM = 'STOCK' | 'BOND' | 'MUTUAL_FUND';
-
-const numericTransformer = {
-  to: (v: number) => v,
-  from: (v: string) => parseFloat(v),
-};
 
 @Entity('assets')
 export class AssetModel {
@@ -45,6 +42,9 @@ export class AssetModel {
 
   @Column('int')
   quantity!: number;
+
+  @VersionColumn()
+  version!: number;
 
   @CreateDateColumn()
   createdAt!: Date;

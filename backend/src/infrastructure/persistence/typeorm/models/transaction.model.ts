@@ -8,13 +8,9 @@ import {
 } from 'typeorm';
 import { UserModel } from './user.model';
 import { AssetModel } from './asset.model';
+import { numericTransformer } from '../transformers/numeric.transformer';
 
 export type TransactionTypeORM = 'BUY' | 'SELL';
-
-const numericTransformer = {
-  to: (v: number) => v,
-  from: (v: string) => parseFloat(v),
-};
 
 @Entity('transactions')
 export class TransactionModel {

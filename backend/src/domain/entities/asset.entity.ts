@@ -15,6 +15,7 @@ interface AssetProps {
   purchasePrice: Money;
   currentValue: Money;
   quantity: number;
+  version: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,13 +24,13 @@ export class Asset {
   private constructor(private readonly props: AssetProps) {}
 
   static create(
-    props: Omit<AssetProps, 'createdAt' | 'updatedAt'>,
+    props: Omit<AssetProps, 'version' | 'createdAt' | 'updatedAt'>,
   ): Result<Asset, AssetError> {
     if (props.quantity <= 0) {
       return err({ type: 'INVALID_QUANTITY', provided: props.quantity });
     }
     const now = new Date();
-    return ok(new Asset({ ...props, createdAt: now, updatedAt: now }));
+    return ok(new Asset({ ...props, version: 1, createdAt: now, updatedAt: now }));
   }
 
   static reconstitute(props: AssetProps): Asset {
@@ -44,6 +45,7 @@ export class Asset {
   get purchasePrice(): Money { return this.props.purchasePrice; }
   get currentValue(): Money { return this.props.currentValue; }
   get quantity(): number { return this.props.quantity; }
+  get version(): number { return this.props.version; }
   get createdAt(): Date { return this.props.createdAt; }
   get updatedAt(): Date { return this.props.updatedAt; }
 

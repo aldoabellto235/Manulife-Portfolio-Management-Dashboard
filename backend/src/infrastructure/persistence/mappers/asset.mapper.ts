@@ -14,6 +14,7 @@ export class AssetMapper {
       purchasePrice: Money.create(raw.purchasePrice, raw.currency).unwrap(),
       currentValue: Money.create(raw.currentValue, raw.currency).unwrap(),
       quantity: raw.quantity,
+      version: raw.version,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
     });
@@ -30,6 +31,7 @@ export class AssetMapper {
     model.currentValue = asset.currentValue.amount;
     model.currency = asset.currentValue.currency;
     model.quantity = asset.quantity;
+    model.version = asset.version;
     model.createdAt = asset.createdAt;
     model.updatedAt = asset.updatedAt;
     return model;

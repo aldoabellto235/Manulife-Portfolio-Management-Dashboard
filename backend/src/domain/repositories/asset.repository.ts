@@ -1,10 +1,8 @@
 import { Asset } from '../entities/asset.entity';
 import { AssetId, UserId } from '../value-objects/branded';
+import { PaginatedResult } from '../../shared/pagination';
 
-export interface PaginatedResult<T> {
-  items: T[];
-  total: number;
-}
+export type { PaginatedResult };
 
 export interface IAssetRepository {
   findById(id: AssetId): Promise<Asset | null>;

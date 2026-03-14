@@ -1,6 +1,6 @@
 import { Transaction } from '../entities/transaction.entity';
 import { AssetId, TransactionId, UserId } from '../value-objects/branded';
-import { PaginatedResult } from './asset.repository';
+import { PaginatedResult } from '../../shared/pagination';
 
 export interface ITransactionRepository {
   findById(id: TransactionId): Promise<Transaction | null>;
