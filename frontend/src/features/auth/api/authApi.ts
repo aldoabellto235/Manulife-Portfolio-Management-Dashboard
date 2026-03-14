@@ -1,5 +1,4 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { RootState } from '@/app/store';
+import { createApi } from '@reduxjs/toolkit/query/react';
 import type {
   LoginRequest,
   RegisterRequest,
@@ -7,6 +6,7 @@ import type {
   MeResponse,
   LogoutResponse,
 } from '../types';
+import { createAuthBaseQuery } from '@/shared/api/baseQuery';
 
 const basicAuth = btoa(
   `${import.meta.env.VITE_BASIC_AUTH_USER}:${import.meta.env.VITE_BASIC_AUTH_PASSWORD}`
@@ -14,16 +14,7 @@ const basicAuth = btoa(
 
 export const authApi = createApi({
   reducerPath: 'authApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_API_BASE_URL,
-    prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as RootState).auth.token;
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: createAuthBaseQuery(import.meta.env.VITE_API_BASE_URL),
   endpoints: (builder) => ({
     login: builder.mutation<AuthTokenResponse, LoginRequest>({
       query: (body) => ({

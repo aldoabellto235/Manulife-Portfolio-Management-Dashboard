@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { joiResolver } from '@hookform/resolvers/joi';
 import Joi from 'joi';
@@ -13,9 +14,11 @@ import InputAdornment from '@mui/material/InputAdornment';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
+import Skeleton from '@mui/material/Skeleton';
 import type { TransactionFormData } from '../types';
 import { useGetInvestmentsQuery } from '@/features/portfolio/api/portfolioApi';
 import { tokens } from '@/shared/theme/tokens';
+import { formatCurrency } from '@/shared/utils/formatCurrency';
 
 const schema = Joi.object<TransactionFormData>({
   assetId: Joi.string().uuid().required().messages({
@@ -40,6 +43,8 @@ const schema = Joi.object<TransactionFormData>({
   }),
 });
 
+const TODAY = new Date().toISOString().split('T')[0];
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -48,7 +53,10 @@ interface Props {
 }
 
 export function TransactionForm({ open, onClose, onSubmit, isLoading }: Props) {
-  const { data: investmentsData } = useGetInvestmentsQuery({ limit: 100 });
+  const { data: investmentsData, isLoading: isLoadingAssets } = useGetInvestmentsQuery(
+    { limit: 100 },
+    { skip: !open },
+  );
   const assets = investmentsData?.data ?? [];
 
   const {
@@ -63,12 +71,23 @@ export function TransactionForm({ open, onClose, onSubmit, isLoading }: Props) {
     defaultValues: {
       type: 'BUY',
       currency: 'IDR',
-      date: new Date().toISOString().split('T')[0],
+      date: TODAY,
     },
   });
 
+  // Reset form whenever dialog opens
+  useEffect(() => {
+    if (open) {
+      reset({ type: 'BUY', currency: 'IDR', date: TODAY });
+    }
+  }, [open, reset]);
+
   const selectedType = watch('type');
+  const quantity = watch('quantity');
+  const price = watch('price');
   const isBuy = selectedType === 'BUY';
+
+  const total = Number(quantity) > 0 && Number(price) > 0 ? Number(quantity) * Number(price) : null;
 
   const handleClose = () => {
     reset();
@@ -104,7 +123,11 @@ export function TransactionForm({ open, onClose, onSubmit, isLoading }: Props) {
                     return (
                       <Box
                         key={t}
+                        role="button"
+                        tabIndex={0}
                         onClick={() => field.onChange(t)}
+                        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && field.onChange(t)}
+                        aria-pressed={selected}
                         sx={{
                           flex: 1,
                           py: 1.5,
@@ -114,9 +137,14 @@ export function TransactionForm({ open, onClose, onSubmit, isLoading }: Props) {
                           borderRadius: tokens.radius.md,
                           backgroundColor: selected ? selectedBg : tokens.color.bgBase,
                           transition: `all ${tokens.transition.fast}`,
+                          outline: 'none',
                           '&:hover': {
                             borderColor: selectedColor,
                             backgroundColor: selectedBg,
+                          },
+                          '&:focus-visible': {
+                            outline: `2px solid ${selectedColor}`,
+                            outlineOffset: '2px',
                           },
                         }}
                       >
@@ -151,35 +179,39 @@ export function TransactionForm({ open, onClose, onSubmit, isLoading }: Props) {
             name="assetId"
             control={control}
             render={({ field }) => (
-              <TextField
-                {...field}
-                select
-                label="Asset"
-                fullWidth
-                error={Boolean(errors.assetId)}
-                helperText={errors.assetId?.message ?? (assets.length === 0 ? 'No investments found. Add one first.' : undefined)}
-                disabled={assets.length === 0}
-                slotProps={{
-                  select: {
-                    renderValue: (value) => {
-                      const asset = assets.find((a) => a.id === value);
-                      if (!asset) return '';
-                      return `${asset.name} (${asset.symbol})`;
+              isLoadingAssets ? (
+                <Skeleton variant="rounded" height={56} />
+              ) : (
+                <TextField
+                  {...field}
+                  select
+                  label="Asset"
+                  fullWidth
+                  error={Boolean(errors.assetId)}
+                  helperText={errors.assetId?.message ?? (assets.length === 0 ? 'No investments found. Add one first.' : undefined)}
+                  disabled={assets.length === 0}
+                  slotProps={{
+                    select: {
+                      renderValue: (value) => {
+                        const asset = assets.find((a) => a.id === value);
+                        if (!asset) return '';
+                        return `${asset.name} (${asset.symbol})`;
+                      },
                     },
-                  },
-                }}
-              >
-                {assets.map((a) => (
-                  <MenuItem key={a.id} value={a.id}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                      <Typography variant="body2">{a.name}</Typography>
-                      <Typography sx={{ fontFamily: tokens.font.mono, fontSize: tokens.fontSize.xs, color: tokens.color.textMuted }}>
-                        {a.symbol}
-                      </Typography>
-                    </Box>
-                  </MenuItem>
-                ))}
-              </TextField>
+                  }}
+                >
+                  {assets.map((a) => (
+                    <MenuItem key={a.id} value={a.id}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                        <Typography variant="body2">{a.name}</Typography>
+                        <Typography sx={{ fontFamily: tokens.font.mono, fontSize: tokens.fontSize.xs, color: tokens.color.textMuted }}>
+                          {a.symbol}
+                        </Typography>
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </TextField>
+              )
             )}
           />
 
@@ -222,6 +254,36 @@ export function TransactionForm({ open, onClose, onSubmit, isLoading }: Props) {
             />
           </Box>
 
+          {/* Live total preview */}
+          {total !== null && (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                px: 2,
+                py: 1.25,
+                borderRadius: tokens.radius.md,
+                backgroundColor: isBuy ? tokens.color.successMuted : tokens.color.dangerMuted,
+                border: `1px solid ${isBuy ? tokens.color.success : tokens.color.danger}`,
+              }}
+            >
+              <Typography sx={{ fontSize: tokens.fontSize.sm, color: tokens.color.textSecondary }}>
+                Estimated Total
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: tokens.font.mono,
+                  fontWeight: 600,
+                  fontSize: tokens.fontSize.sm,
+                  color: isBuy ? tokens.color.success : tokens.color.danger,
+                }}
+              >
+                {isBuy ? '+' : '−'}{formatCurrency(total)}
+              </Typography>
+            </Box>
+          )}
+
           {/* Date */}
           <TextField
             {...register('date')}
@@ -232,7 +294,10 @@ export function TransactionForm({ open, onClose, onSubmit, isLoading }: Props) {
             helperText={errors.date?.message}
             slotProps={{
               inputLabel: { shrink: true },
-              input: { style: { fontFamily: tokens.font.mono } },
+              input: {
+                inputProps: { max: TODAY },
+                style: { fontFamily: tokens.font.mono },
+              },
             }}
           />
         </DialogContent>
