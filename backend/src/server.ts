@@ -29,7 +29,7 @@ app.use(requestIdMiddleware);
 app.use(requestLogger);
 app.use(globalRateLimit);
 
-app.get('/health', basicAuthMiddleware, (_req, res) => {
+app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
@@ -44,8 +44,10 @@ app.use(`${API_PREFIX_V1}/transactions`, transactionRoutes);
 app.use(errorHandler);
 
 AppDataSource.initialize()
-  .then(() => {
+  .then(async () => {
     logger.info('Database connected');
+    await AppDataSource.runMigrations();
+    logger.info('Migrations complete');
     const server = app.listen(env.PORT, () => {
       logger.info(`Server running on port ${env.PORT}`, { env: env.NODE_ENV });
     });
