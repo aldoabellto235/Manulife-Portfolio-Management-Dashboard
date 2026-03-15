@@ -8,14 +8,7 @@ const config: Config = {
   setupFiles: ['reflect-metadata'],
   transform: {
     '^.+\\.ts$': ['ts-jest', {
-      tsconfig: {
-        experimentalDecorators: true,
-        emitDecoratorMetadata: true,
-        strict: true,
-        esModuleInterop: true,
-        target: 'ES2022',
-        module: 'commonjs',
-      },
+      tsconfig: 'tsconfig.test.json',
     }],
   },
   moduleNameMapper: {
@@ -25,6 +18,25 @@ const config: Config = {
     '@interfaces/(.*)': '<rootDir>/src/interfaces/$1',
   },
   clearMocks: true,
+
+  collectCoverageFrom: [
+    'src/domain/**/*.ts',
+    'src/application/**/*.ts',
+    'src/shared/**/*.ts',
+    '!src/**/__tests__/**',
+    '!src/**/*.test.ts',
+    '!src/shared/logger.ts',
+  ],
+  coverageDirectory: 'coverage',
+  coverageReporters: ['text', 'lcov', 'html'],
+  coverageThreshold: {
+    global: {
+      branches: 80,
+      functions: 90,
+      lines: 90,
+      statements: 90,
+    },
+  },
 };
 
 export default config;
